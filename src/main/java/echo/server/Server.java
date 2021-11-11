@@ -1,24 +1,29 @@
 package echo.server;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import echo.helper.SocketStreamManager;
+
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Server {
 
+    public static final int ECHO_PORT = 3000;
+    public static final String SHUTDOWN_KEYWORD = "stop";
+
     public static void main(String[] args) throws Exception {
-        ServerSocket serverSocket = new ServerSocket(3000);
-        Socket socket = serverSocket.accept();
-        while (true) {
-            var input = new ObjectInputStream(socket.getInputStream());
-            var message = (String) input.readObject();
-            if (message.equals("stop")) {
-                break;
+        try (ServerSocket serverSocket = new ServerSocket(ECHO_PORT)) {
+            Socket socket = serverSocket.accept();
+            SocketStreamManager socketStreamManager = new SocketStreamManager(socket);
+            while (true) {
+                String message = socketStreamManager.readMessage();
+
+                if (message.equals(SHUTDOWN_KEYWORD)) {
+                    break;
+                }
+
+                String modifiedMessage = "echo:" + message;
+                socketStreamManager.sendMessage(modifiedMessage);
             }
-            String modified = "echo:" + message;
-            var output = new ObjectOutputStream(socket.getOutputStream());
-            output.writeObject(modified);
         }
     }
 }

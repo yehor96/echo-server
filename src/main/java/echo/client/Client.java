@@ -1,26 +1,32 @@
 package echo.client;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import echo.helper.SocketStreamManager;
+import echo.server.Server;
+
 import java.net.Socket;
 import java.util.Scanner;
 
 public class Client {
 
     public static void main(String[] args) throws Exception {
-        Socket socket = new Socket("localhost", 3000);
-        var scanner = new Scanner(System.in);
+        try (Socket socket = new Socket("localhost", Server.ECHO_PORT)) {
+            Scanner scanner = new Scanner(System.in);
+            SocketStreamManager socketStreamManager = new SocketStreamManager(socket);
+            System.out.println("Print 'stop' to quit the app");
 
-        while (true) {
-            var output = new ObjectOutputStream(socket.getOutputStream());
-            String entry = scanner.nextLine();
-            output.writeObject(entry);
-            if (entry.equals("stop")) {
-                break;
+            while (true) {
+                System.out.print("Enter value: ");
+                String entry = scanner.nextLine();
+                socketStreamManager.sendMessage(entry);
+
+                if (entry.equals(Server.SHUTDOWN_KEYWORD)) {
+                    System.out.println("Shutting down ... ");
+                    break;
+                }
+
+                String response = socketStreamManager.readMessage();
+                System.out.println(response);
             }
-            var input = new ObjectInputStream(socket.getInputStream());
-            var response = (String) input.readObject();
-            System.out.println(response);
         }
     }
 
