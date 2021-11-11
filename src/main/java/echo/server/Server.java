@@ -13,16 +13,17 @@ public class Server {
     public static void main(String[] args) throws Exception {
         try (ServerSocket serverSocket = new ServerSocket(ECHO_PORT)) {
             Socket socket = serverSocket.accept();
-            SocketStreamManager socketStreamManager = new SocketStreamManager(socket);
-            while (true) {
-                String message = socketStreamManager.readMessage();
+            try (SocketStreamManager socketStreamManager = new SocketStreamManager(socket)) {
+                while (true) {
+                    String message = socketStreamManager.readMessage();
 
-                if (message.equals(SHUTDOWN_KEYWORD)) {
-                    break;
+                    if (message.equals(SHUTDOWN_KEYWORD)) {
+                        break;
+                    }
+
+                    String modifiedMessage = "echo:" + message;
+                    socketStreamManager.sendMessage(modifiedMessage);
                 }
-
-                String modifiedMessage = "echo:" + message;
-                socketStreamManager.sendMessage(modifiedMessage);
             }
         }
     }
