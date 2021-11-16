@@ -9,8 +9,9 @@ import java.util.Scanner;
 public class Client {
 
     public static void main(String[] args) throws Exception {
-        try (Socket socket = new Socket("localhost", Server.ECHO_PORT)) {
-            Scanner scanner = new Scanner(System.in);
+        try (Socket socket = new Socket("localhost", Server.ECHO_PORT);
+             Scanner scanner = new Scanner(System.in)) {
+
             System.out.println("Print 'stop' to quit the app");
             try (SocketStreamManager socketStreamManager = new SocketStreamManager(socket)) {
                 while (true) {

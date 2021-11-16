@@ -1,33 +1,41 @@
 package echo.helper;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Objects;
 
 public class SocketStreamManager implements AutoCloseable {
 
+    private static final int DEFAULT_BUFFER_SIZE = 1024;
+
     private final Socket socket;
-    private ObjectInputStream input;
-    private ObjectOutputStream output;
+    private BufferedReader input;
+    private BufferedWriter writer;
 
     public SocketStreamManager(Socket socket) {
         this.socket = socket;
     }
 
-    public String readMessage() throws IOException, ClassNotFoundException {
+    public String readMessage() throws IOException {
         if (Objects.isNull(input)) {
-            input = new ObjectInputStream(socket.getInputStream());
+            input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         }
-        return (String) input.readObject();
+
+        char[] chars = new char[DEFAULT_BUFFER_SIZE];
+        int readSize = input.read(chars);
+        return new String(chars, 0, readSize);
     }
 
     public void sendMessage(String message) throws IOException {
-        if (Objects.isNull(output)) {
-            output = new ObjectOutputStream(socket.getOutputStream());
+        if (Objects.isNull(writer)) {
+            writer = new BufferedWriter(new PrintWriter(socket.getOutputStream()));
         }
-        output.writeObject(message);
+        writer.write(message);
+        writer.flush();
     }
 
     @Override
@@ -35,8 +43,8 @@ public class SocketStreamManager implements AutoCloseable {
         if (Objects.nonNull(input)) {
             input.close();
         }
-        if (Objects.nonNull(output)) {
-            output.close();
+        if (Objects.nonNull(writer)) {
+            writer.close();
         }
     }
 }
