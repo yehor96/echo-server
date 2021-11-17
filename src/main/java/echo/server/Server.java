@@ -8,9 +8,9 @@ public class Server {
     public static final int ECHO_PORT = 3000;
     public static final String SHUTDOWN_KEYWORD = "stop";
 
-    private static int clientCounter = 0;
-
     public static void main(String[] args) throws Exception {
+        int clientCounter = 0;
+
         try (ServerSocket serverSocket = new ServerSocket(ECHO_PORT)) {
             while(true) {
                 Socket socket = serverSocket.accept();
